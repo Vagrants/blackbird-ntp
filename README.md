@@ -25,3 +25,16 @@ Data to be sent is as follows
 * offset (ms)
 * jitter
 
+## Install
+
+You can install by pip.
+
+```
+$ pip install git+https://github.com/Vagrants/blackbird-ntp.git
+```
+
+Or you can also install rpm package from [blackbird repository](https://github.com/Vagrants/blackbird/blob/master/README.md).
+
+```
+$ sudo yum install blackbird-ntp --enablerepo=blackbird
+```
