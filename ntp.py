@@ -4,7 +4,7 @@ blackbird ntp module
 get information of time synchronization by using 'ntpq'
 """
 
-__VERSION__ = '0.1.0'
+__VERSION__ = '0.1.1'
 
 import subprocess
 import re
@@ -88,19 +88,34 @@ class ConcreteJob(base.JobBase):
 
     def ntpq(self):
         """
-        execute 'ntpq -pn'
+        execute ntpq peer status
         """
 
-        try:
-            output = subprocess.Popen(
-                [self.options['path'], '-pn'],
-                stdout=subprocess.PIPE
-            ).communicate()[0]
+        _cmd = [
+            self.options['path'],
+            '-c', 'hostnames no',
+            '-c', 'timeout {to}'.format(to=self.options['timeout']),
+            '-c', 'peer',
+            self.options['host']
+        ]
 
+        try:
+            output, stderr = subprocess.Popen(
+                _cmd,
+                stderr=subprocess.PIPE,
+                stdout=subprocess.PIPE
+            ).communicate()
         except OSError:
+            self._enqueue('ntp.synchronized', 0)
             raise base.BlackbirdPluginError(
-                'can not exec "{0} -pn", failed to get ntp information'
-                ''.format(self.options['path'])
+                'can not exec "{cmd}", failed to get ntp information'
+                ''.format(cmd=' '.join(_cmd))
+            )
+
+        if stderr:
+            self._enqueue('ntp.synchronized', 0)
+            raise base.BlackbirdPluginError(
+                'ntpq client error [{err}]'.format(err=stderr.strip())
             )
 
         peer_type = {
@@ -172,6 +187,8 @@ class Validator(base.ValidatorBase):
         self.__spec = (
             "[{0}]".format(__name__),
             "path=string(default='/usr/sbin/ntpq')",
+            "host=string(default='127.0.0.1')",
+            "timeout=integer(0, 10000, default=1000)",
             "hostname=string(default={0})".format(self.detect_hostname()),
         )
         return self.__spec
