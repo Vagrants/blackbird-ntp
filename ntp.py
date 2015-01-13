@@ -4,7 +4,7 @@ blackbird ntp module
 get information of time synchronization by using 'ntpq'
 """
 
-__VERSION__ = '0.1.1'
+__VERSION__ = '0.1.2'
 
 import subprocess
 import re
@@ -134,7 +134,7 @@ class ConcreteJob(base.JobBase):
             # synchronized
             if value[0].startswith('*'):
                 self._enqueue('ntp.synchronized', 1)
-                self._enqueue('ntp.remote', value[0][1:-1])
+                self._enqueue('ntp.remote', value[0][1:])
                 self._enqueue('ntp.refid', value[1])
                 self._enqueue('ntp.stratum', value[2])
                 self._enqueue('ntp.peer', peer_type[value[3]])
